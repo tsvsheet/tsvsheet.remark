@@ -1,0 +1,29 @@
+{
+	"name": "@tsvsheet/tsvsheet-remark",
+	"version": "0.1.0",
+	"description": "tsvsheet for JS markdown pipelines — a remark and markdown-it plugin that computes fenced ```sheet blocks server-side through the embedded tsvsheet engine and emits static HTML",
+	"type": "module",
+	"main": "src/tsvsheet-remark/index.js",
+	"exports": {
+		".": "./src/tsvsheet-remark/index.js",
+		"./remark": "./src/tsvsheet-remark/remark.js",
+		"./markdown-it": "./src/tsvsheet-remark/markdown-it.js"
+	},
+	"types": "src/tsvsheet-remark/index.d.ts",
+	"files": [
+		"src"
+	],
+	"scripts": {
+		"test": "node --test --experimental-test-coverage --test-coverage-include='src/tsvsheet-remark/**' --test-coverage-lines=100 tests/*.test.js",
+		"lint": "eslint src/tsvsheet-remark tests"
+	},
+	"dependencies": {
+		"@tsvsheet/tsvsheet": "file:../tsvsheet.js"
+	},
+	"license": "MIT",
+	"homepage": "https://uplang.org",
+	"devDependencies": {
+		"@eslint/js": "^9.0.0",
+		"eslint": "^9.0.0"
+	}
+}
