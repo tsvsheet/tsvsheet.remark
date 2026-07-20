@@ -8,7 +8,12 @@ import { before, describe, it } from "node:test";
 
 import { load } from "@tsvsheet/tsvsheet";
 
-import { DEFAULT_CLASS, renderSheet, resolveOptions } from "../src/tsvsheet-remark/index.js";
+import {
+	DEFAULT_CLASS,
+	renderSheet,
+	renderSheetMarkdown,
+	resolveOptions,
+} from "../src/tsvsheet-remark/index.js";
 
 describe("renderSheet", () => {
 	let engine;
@@ -62,15 +67,61 @@ describe("renderSheet", () => {
 	});
 });
 
+describe("renderSheetMarkdown", () => {
+	let engine;
+	before(async () => {
+		engine = await load();
+	});
+
+	it("computes a grid into a GFM pipe table, byte-identical to the CLI", () => {
+		const md = renderSheetMarkdown(engine, "Item\tPrice\nApple\t=1+1\nPear\t=2*2\n");
+		assert.equal(md, "| Item | Price |\n| --- | --- |\n| Apple | 2 |\n| Pear | 4 |\n");
+	});
+
+	it("renders a single-row grid as a header plus separator, no body", () => {
+		assert.equal(renderSheetMarkdown(engine, "A\tB\n"), "| A | B |\n| --- | --- |\n");
+	});
+
+	it("renders a computed error value as its cell text", () => {
+		const md = renderSheetMarkdown(engine, "a\tb\n=1/0\t=2+2\n");
+		assert.equal(md, "| a | b |\n| --- | --- |\n| #DIV/0! | 4 |\n");
+	});
+
+	it("escapes a pipe so a cell never starts a new column", () => {
+		const md = renderSheetMarkdown(engine, '="a|b"\t=1\n');
+		assert.equal(md, "| a\\|b | 1 |\n| --- | --- |\n");
+	});
+
+	it("turns an in-cell newline into a <br> so a cell never splits the row", () => {
+		const md = renderSheetMarkdown(engine, '=CHAR(65)&CHAR(10)&CHAR(66)\t=1\n');
+		assert.equal(md, "| A<br>B | 1 |\n| --- | --- |\n");
+	});
+
+	it("yields no output for an empty grid", () => {
+		assert.equal(renderSheetMarkdown(engine, ""), "");
+	});
+
+	it("renders a malformed block as the same visible error <div> as the HTML host", () => {
+		const md = renderSheetMarkdown(engine, "=1 +\n");
+		assert.match(md, /^<div class="tsvsheet-error">.+<\/div>$/);
+		assert.doesNotMatch(md, /\|/);
+	});
+});
+
 describe("resolveOptions", () => {
-	it("defaults the class to tsvsheet and hides the source", () => {
-		assert.deepEqual(resolveOptions(), { className: DEFAULT_CLASS, showSource: false });
+	it("defaults the class to tsvsheet, hides the source, and outputs html", () => {
+		assert.deepEqual(resolveOptions(), {
+			className: DEFAULT_CLASS,
+			showSource: false,
+			output: "html",
+		});
 	});
 
 	it("takes caller overrides", () => {
-		assert.deepEqual(resolveOptions({ className: "x", showSource: true }), {
+		assert.deepEqual(resolveOptions({ className: "x", showSource: true, output: "markdown" }), {
 			className: "x",
 			showSource: true,
+			output: "markdown",
 		});
 	});
 });

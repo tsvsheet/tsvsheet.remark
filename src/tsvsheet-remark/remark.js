@@ -11,7 +11,8 @@
  */
 import { load } from "@tsvsheet/tsvsheet";
 
-import { renderSheet } from "./render.js";
+import { resolveOptions } from "./options.js";
+import { renderSheet, renderSheetMarkdown } from "./render.js";
 
 /**
  * @param {import("./options.js").Options} [options]
@@ -20,21 +21,34 @@ import { renderSheet } from "./render.js";
 export default function remarkTsvsheet(options = {}) {
 	return async function transformer(tree) {
 		const engine = options.engine ?? (await load());
-		replaceSheets(tree, engine, options);
+		replaceSheets(tree, sheetRenderer(engine, options));
 	};
 }
 
+/**
+ * Select the serializer for the configured output: an HTML `<table>` by default,
+ * or a portable GFM markdown table when `output` is `markdown`. Either way the
+ * result is emitted as a raw `html` node, which remark-stringify passes through
+ * verbatim.
+ */
+function sheetRenderer(engine, options) {
+	if (resolveOptions(options).output === "markdown") {
+		return (source) => renderSheetMarkdown(engine, source);
+	}
+	return (source) => renderSheet(engine, source, options);
+}
+
 /** Replace `sheet` code children with computed `html` nodes, recursing the rest. */
-function replaceSheets(node, engine, options) {
+function replaceSheets(node, render) {
 	if (node.children === undefined) {
 		return;
 	}
 	node.children.forEach((child, index) => {
 		if (isSheet(child)) {
-			node.children[index] = { type: "html", value: renderSheet(engine, child.value, options) };
+			node.children[index] = { type: "html", value: render(child.value) };
 			return;
 		}
-		replaceSheets(child, engine, options);
+		replaceSheets(child, render);
 	});
 }
 

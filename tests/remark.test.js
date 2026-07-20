@@ -61,4 +61,14 @@ describe("remarkTsvsheet", () => {
 		await remarkTsvsheet({ engine, className: "grid" })(tree);
 		assert.match(tree.children[0].value, /^<table class="grid">/);
 	});
+
+	it("bakes a sheet into a portable markdown table when output is markdown", async () => {
+		const tree = doc(code("sheet", "Item\tPrice\nApple\t=1+1\n"));
+		await remarkTsvsheet({ engine, output: "markdown" })(tree);
+		assert.equal(tree.children[0].type, "html");
+		assert.equal(
+			tree.children[0].value,
+			"| Item | Price |\n| --- | --- |\n| Apple | 2 |\n",
+		);
+	});
 });

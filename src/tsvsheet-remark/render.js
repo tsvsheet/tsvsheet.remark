@@ -27,6 +27,28 @@ export function renderSheet(engine, source, options) {
 	}
 }
 
+/**
+ * renderSheetMarkdown — the markdown-baking sibling of {@link renderSheet}.
+ *
+ * Given a loaded engine and the body of a fenced ```sheet block, it computes
+ * the grid and returns a GitHub-flavored pipe table — byte-for-byte the CLI's
+ * `tsv render --format md` output — so a computed sheet freezes into portable
+ * markdown that renders anywhere with no engine. A malformed body yields the
+ * same visible `<div class="tsvsheet-error">` the HTML host emits (valid raw
+ * HTML in GFM), so one error representation holds across every output mode.
+ *
+ * @param {import("@tsvsheet/tsvsheet").Engine} engine a loaded engine
+ * @param {string} source the `.tsvt` body of a ```sheet block
+ * @returns {string} the computed GFM pipe table, or an inline error `<div>`
+ */
+export function renderSheetMarkdown(engine, source) {
+	try {
+		return markdownTable(engine.compute(source).computed);
+	} catch (err) {
+		return errorHtml(err);
+	}
+}
+
 /** Render a parse failure as a visible, escaped error pane. */
 function errorHtml(err) {
 	return `<div class="tsvsheet-error">${escapeHtml(err.message)}</div>`;
@@ -50,4 +72,36 @@ function sourceHtml(source, opts) {
 		return "";
 	}
 	return `<details class="tsvsheet-source"><summary>source</summary><pre>${escapeHtml(source)}</pre></details>`;
+}
+
+/**
+ * Render a computed grid as a GitHub-flavored pipe table: the first row is the
+ * header, followed by a `---` separator row, then the remaining rows. An empty
+ * grid yields no output, matching the CLI's markdown format.
+ */
+function markdownTable(grid) {
+	if (grid.length === 0) {
+		return "";
+	}
+	const [header, ...body] = grid;
+	const separator = header.map(() => "---");
+	return [header, separator, ...body].map(markdownRow).join("");
+}
+
+/** Render one grid row as a pipe-delimited table row of escaped cells. */
+function markdownRow(row) {
+	return `| ${row.map(escapeCell).join(" | ")} |\n`;
+}
+
+/**
+ * Escape a cell for pipe-table safety, matching the CLI's `markdownRow`: a `|`
+ * is backslash-escaped so it never starts a new column, and a newline — which a
+ * cell can hold via CHAR(10) — becomes a `<br>` so it never splits the row.
+ */
+function escapeCell(cell) {
+	return cell
+		.replaceAll("|", "\\|")
+		.replaceAll("\r\n", "<br>")
+		.replaceAll("\n", "<br>")
+		.replaceAll("\r", "<br>");
 }

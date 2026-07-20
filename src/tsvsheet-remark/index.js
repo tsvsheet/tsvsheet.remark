@@ -8,7 +8,7 @@
  * through `@tsvsheet/tsvsheet` (the Go engine embedded as WebAssembly), so a
  * `.tsvt` block renders identically here, in the goldmark host, and in the CLI.
  */
-export { renderSheet } from "./render.js";
-export { resolveOptions, DEFAULT_CLASS } from "./options.js";
+export { renderSheet, renderSheetMarkdown } from "./render.js";
+export { resolveOptions, DEFAULT_CLASS, DEFAULT_OUTPUT } from "./options.js";
 export { default as remarkTsvsheet } from "./remark.js";
 export { default as markdownItTsvsheet } from "./markdown-it.js";
