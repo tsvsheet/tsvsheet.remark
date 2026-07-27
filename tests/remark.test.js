@@ -36,7 +36,10 @@ describe("remarkTsvsheet", () => {
 
 	it("leaves non-sheet code and other nodes untouched", async () => {
 		const js = code("js", "const x = 1;");
-		const text = { type: "paragraph", children: [{ type: "text", value: "hi" }] };
+		const text = {
+			type: "paragraph",
+			children: [{ type: "text", value: "hi" }],
+		};
 		const tree = doc(js, text);
 		await remarkTsvsheet({ engine })(tree);
 		assert.equal(tree.children[0], js);
@@ -44,7 +47,10 @@ describe("remarkTsvsheet", () => {
 	});
 
 	it("recurses into nested containers", async () => {
-		const tree = doc({ type: "blockquote", children: [code("sheet", "=2*3\n")] });
+		const tree = doc({
+			type: "blockquote",
+			children: [code("sheet", "=2*3\n")],
+		});
 		await remarkTsvsheet({ engine })(tree);
 		assert.equal(tree.children[0].children[0].type, "html");
 		assert.match(tree.children[0].children[0].value, /<td>6<\/td>/);

@@ -28,7 +28,10 @@ describe("markdownItTsvsheet", () => {
 	it("renders a sheet fence as a computed table", () => {
 		const md = fakeMd(undefined);
 		markdownItTsvsheet(md, { engine });
-		const html = renderFence(md, { info: "sheet", content: "1\t2\n=A1+B1\t\n" });
+		const html = renderFence(md, {
+			info: "sheet",
+			content: "1\t2\n=A1+B1\t\n",
+		});
 		assert.equal(
 			html,
 			'<table class="tsvsheet"><tr><td>1</td><td>2</td></tr><tr><td>3</td><td></td></tr></table>',
@@ -38,7 +41,11 @@ describe("markdownItTsvsheet", () => {
 	it("trims and matches only the first info-string word", () => {
 		const md = fakeMd(undefined);
 		markdownItTsvsheet(md, { engine });
-		const html = renderFence(md, { info: "  sheet static ", content: "=9\n" }, {});
+		const html = renderFence(
+			md,
+			{ info: "  sheet static ", content: "=9\n" },
+			{},
+		);
 		assert.match(html, /<td>9<\/td>/);
 	});
 
@@ -52,10 +59,16 @@ describe("markdownItTsvsheet", () => {
 		const md = fakeMd(undefined);
 		markdownItTsvsheet(md, { engine });
 		const self = { renderToken: () => "DEFAULT" };
-		assert.equal(renderFence(md, { info: "js", content: "x" }, self), "DEFAULT");
+		assert.equal(
+			renderFence(md, { info: "js", content: "x" }, self),
+			"DEFAULT",
+		);
 	});
 
 	it("throws when no engine is provided", () => {
-		assert.throws(() => markdownItTsvsheet(fakeMd(undefined)), /requires a loaded engine/);
+		assert.throws(
+			() => markdownItTsvsheet(fakeMd(undefined)),
+			/requires a loaded engine/,
+		);
 	});
 });

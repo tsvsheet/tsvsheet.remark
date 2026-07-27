@@ -38,7 +38,11 @@ export function resolveOptions(options?: Options): {
  * Compute a ```sheet block body and return its HTML: a `<table class="…">` on
  * success, or a `<div class="tsvsheet-error">` when the body is malformed.
  */
-export function renderSheet(engine: Engine, source: string, options?: Options): string;
+export function renderSheet(
+	engine: Engine,
+	source: string,
+	options?: Options,
+): string;
 
 /**
  * Compute a ```sheet block body and return a GitHub-flavored markdown pipe
@@ -49,7 +53,9 @@ export function renderSheet(engine: Engine, source: string, options?: Options): 
 export function renderSheetMarkdown(engine: Engine, source: string): string;
 
 /** A remark (mdast) transformer factory. Loads the engine lazily if not injected. */
-export function remarkTsvsheet(options?: Options): (tree: unknown) => Promise<void>;
+export function remarkTsvsheet(
+	options?: Options,
+): (tree: unknown) => Promise<void>;
 
 /**
  * A markdown-it plugin. The engine is mandatory — markdown-it renders

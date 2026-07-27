@@ -29,7 +29,9 @@ export default function markdownItTsvsheet(md, options = {}) {
 /** The engine is mandatory here — markdown-it cannot await a lazy load. */
 function requireEngine(engine) {
 	if (engine === undefined) {
-		throw new Error("markdownItTsvsheet requires a loaded engine: pass { engine }");
+		throw new Error(
+			"markdownItTsvsheet requires a loaded engine: pass { engine }",
+		);
 	}
 	return engine;
 }

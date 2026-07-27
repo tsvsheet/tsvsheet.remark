@@ -65,7 +65,9 @@ function errorHtml(err) {
 function tableHtml(computed, source, opts) {
 	const view = axesOf(computed);
 	const rows = computed.computed
-		.map((row, r) => (view.hiddenRows.has(r + 1) ? "" : rowHtml(row, view, r + 1)))
+		.map((row, r) =>
+			view.hiddenRows.has(r + 1) ? "" : rowHtml(row, view, r + 1),
+		)
 		.join("");
 	const table = `<table class="${escapeHtml(opts.className)}">${rows}</table>`;
 	return table + sourceHtml(source, opts);
@@ -89,9 +91,7 @@ function rowHtml(row, view, at) {
 	const tag = view.headerRows.has(at) ? "th" : "td";
 	const cells = row
 		.map((cell, c) =>
-			view.hiddenCols.has(c + 1)
-				? ""
-				: `<${tag}>${escapeHtml(cell)}</${tag}>`,
+			view.hiddenCols.has(c + 1) ? "" : `<${tag}>${escapeHtml(cell)}</${tag}>`,
 		)
 		.join("");
 	return `<tr>${cells}</tr>`;

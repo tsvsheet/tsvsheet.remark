@@ -51,11 +51,9 @@ describe("renderSheet", () => {
 	});
 
 	it("keeps the hidden rows in the source pane, which is the point", () => {
-		const html = renderSheet(
-			engine,
-			"#.hide\trows(range(2:2))\nkeep\ndrop\n",
-			{ showSource: true },
-		);
+		const html = renderSheet(engine, "#.hide\trows(range(2:2))\nkeep\ndrop\n", {
+			showSource: true,
+		});
 		assert.doesNotMatch(html, /<td>drop<\/td>/);
 		assert.match(html, /drop/, "the source pane still carries the whole file");
 	});
@@ -113,12 +111,21 @@ describe("renderSheetMarkdown", () => {
 	});
 
 	it("computes a grid into a GFM pipe table, byte-identical to the CLI", () => {
-		const md = renderSheetMarkdown(engine, "Item\tPrice\nApple\t=1+1\nPear\t=2*2\n");
-		assert.equal(md, "| Item | Price |\n| --- | --- |\n| Apple | 2 |\n| Pear | 4 |\n");
+		const md = renderSheetMarkdown(
+			engine,
+			"Item\tPrice\nApple\t=1+1\nPear\t=2*2\n",
+		);
+		assert.equal(
+			md,
+			"| Item | Price |\n| --- | --- |\n| Apple | 2 |\n| Pear | 4 |\n",
+		);
 	});
 
 	it("renders a single-row grid as a header plus separator, no body", () => {
-		assert.equal(renderSheetMarkdown(engine, "A\tB\n"), "| A | B |\n| --- | --- |\n");
+		assert.equal(
+			renderSheetMarkdown(engine, "A\tB\n"),
+			"| A | B |\n| --- | --- |\n",
+		);
 	});
 
 	it("renders a computed error value as its cell text", () => {
@@ -132,7 +139,7 @@ describe("renderSheetMarkdown", () => {
 	});
 
 	it("turns an in-cell newline into a <br> so a cell never splits the row", () => {
-		const md = renderSheetMarkdown(engine, '=CHAR(65)&CHAR(10)&CHAR(66)\t=1\n');
+		const md = renderSheetMarkdown(engine, "=CHAR(65)&CHAR(10)&CHAR(66)\t=1\n");
 		assert.equal(md, "| A<br>B | 1 |\n| --- | --- |\n");
 	});
 
@@ -157,10 +164,13 @@ describe("resolveOptions", () => {
 	});
 
 	it("takes caller overrides", () => {
-		assert.deepEqual(resolveOptions({ className: "x", showSource: true, output: "markdown" }), {
-			className: "x",
-			showSource: true,
-			output: "markdown",
-		});
+		assert.deepEqual(
+			resolveOptions({ className: "x", showSource: true, output: "markdown" }),
+			{
+				className: "x",
+				showSource: true,
+				output: "markdown",
+			},
+		);
 	});
 });
