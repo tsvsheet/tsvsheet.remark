@@ -21,7 +21,8 @@ import { resolveOptions } from "./options.js";
 export function renderSheet(engine, source, options) {
 	const opts = resolveOptions(options);
 	try {
-		return tableHtml(engine.compute(source).computed, source, opts);
+		const computed = engine.compute(source);
+		return tableHtml(computed, source, opts);
 	} catch (err) {
 		return errorHtml(err);
 	}
@@ -54,16 +55,46 @@ function errorHtml(err) {
 	return `<div class="tsvsheet-error">${escapeHtml(err.message)}</div>`;
 }
 
-/** Render a computed grid as a `<table>` plus the optional source pane. */
-function tableHtml(grid, source, opts) {
-	const rows = grid.map(rowHtml).join("");
+/**
+ * Render a computed view as a `<table>` plus the optional source pane, honouring
+ * the view the sheet declares for itself: a rendered fence is a viewport, so a
+ * row or column its `#.hide` directives hide is left out, and a `#.header` row
+ * is written as `<th>`. The source pane still carries the `.tsvt` verbatim, so
+ * what the view hides is one click away rather than gone.
+ */
+function tableHtml(computed, source, opts) {
+	const view = axesOf(computed);
+	const rows = computed.computed
+		.map((row, r) => (view.hiddenRows.has(r + 1) ? "" : rowHtml(row, view, r + 1)))
+		.join("");
 	const table = `<table class="${escapeHtml(opts.className)}">${rows}</table>`;
 	return table + sourceHtml(source, opts);
 }
 
-/** Render one grid row as a `<tr>` of HTML-escaped `<td>` cells. */
-function rowHtml(row) {
-	return `<tr>${row.map((cell) => `<td>${escapeHtml(cell)}</td>`).join("")}</tr>`;
+/** Index a computed view's declared positions for lookup while rendering. */
+function axesOf(computed) {
+	return {
+		hiddenRows: new Set(computed.hidden.rows),
+		hiddenCols: new Set(computed.hidden.cols),
+		headerRows: new Set(computed.headers.rows),
+	};
+}
+
+/**
+ * Render one visible row as a `<tr>`, dropping the hidden columns and using
+ * `<th>` for a row the sheet declares as a header — which is what the header
+ * declaration exists to express and a fence could not say before.
+ */
+function rowHtml(row, view, at) {
+	const tag = view.headerRows.has(at) ? "th" : "td";
+	const cells = row
+		.map((cell, c) =>
+			view.hiddenCols.has(c + 1)
+				? ""
+				: `<${tag}>${escapeHtml(cell)}</${tag}>`,
+		)
+		.join("");
+	return `<tr>${cells}</tr>`;
 }
 
 /** Append the raw `.tsvt` source in a collapsible pane when showSource is set. */

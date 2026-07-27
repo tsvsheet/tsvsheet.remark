@@ -21,6 +21,45 @@ describe("renderSheet", () => {
 		engine = await load();
 	});
 
+	it("writes a declared header row as <th>", () => {
+		const html = renderSheet(
+			engine,
+			"#.header\trows(count(1))\nname\tqty\nwidget\t3\n",
+		);
+		assert.match(html, /<th>name<\/th><th>qty<\/th>/);
+		assert.match(html, /<td>widget<\/td>/);
+	});
+
+	it("leaves a hidden column out of the table", () => {
+		const html = renderSheet(
+			engine,
+			"#.hide\tcols(range(B:B))\nname\tscratch\nwidget\tx\n",
+		);
+		assert.match(html, /<td>name<\/td>/);
+		assert.doesNotMatch(html, /scratch/);
+		assert.doesNotMatch(html, /<td>x<\/td>/);
+	});
+
+	it("leaves a hidden row out of the table", () => {
+		const html = renderSheet(
+			engine,
+			"#.hide\trows(range(2:2))\nkeep\ndrop\nkeep too\n",
+		);
+		assert.match(html, /<td>keep<\/td>/);
+		assert.match(html, /<td>keep too<\/td>/);
+		assert.doesNotMatch(html, /<td>drop<\/td>/);
+	});
+
+	it("keeps the hidden rows in the source pane, which is the point", () => {
+		const html = renderSheet(
+			engine,
+			"#.hide\trows(range(2:2))\nkeep\ndrop\n",
+			{ showSource: true },
+		);
+		assert.doesNotMatch(html, /<td>drop<\/td>/);
+		assert.match(html, /drop/, "the source pane still carries the whole file");
+	});
+
 	it("computes a grid into a <table> of the default class", () => {
 		const html = renderSheet(engine, "1\t2\n=A1+B1\t=A1*B1\n");
 		assert.equal(
