@@ -1,7 +1,12 @@
-# The JavaScript package's quality gate: eslint (complexity <= 7) and the node
-# test runner at 100% line coverage of src/tsvsheet-remark. Fenced ```sheet
-# blocks are computed through @tsvsheet/tsvsheet (the embedded tsvsheet.wasm),
-# the shared engine — this host never reimplements it.
+# The JavaScript package's quality gate: eslint (complexity <= 7), the node
+# test runner at 100% line coverage of src/tsvsheet-remark, and a dependency
+# audit. Fenced ```sheet blocks are computed through @tsvsheet/tsvsheet (the
+# embedded tsvsheet.wasm), the shared engine — this host never reimplements it.
+# That engine is consumed as a sibling checkout (file:../tsvsheet.js), mirroring
+# the local layout, so CI must clone tsvsheet.js beside this repo: with only one
+# repo checked out the dependency symlink dangles and every test fails to import
+# it. tsvsheet.js is public and ships its tsvsheet.wasm committed, so the default
+# token suffices and no build step is needed.
 name: node
 on:
   push:
@@ -21,8 +26,16 @@ jobs:
       - uses: actions/checkout@v5
         with:
           persist-credentials: false
+          path: tsvsheet.remark
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+          repository: tsvsheet/tsvsheet.js
+          path: tsvsheet.js
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
-      - run: npm ci
-      - run: make ci
+      - working-directory: tsvsheet.remark
+        run: npm ci
+      - working-directory: tsvsheet.remark
+        run: make ci
