@@ -34,6 +34,15 @@ describe("remarkTsvsheet", () => {
 		);
 	});
 
+	it("computes named values through the fence (023)", async () => {
+		const tree = doc(code("sheet", "=0.08 |@ named(Rate)\t=@Rate * 100\n"));
+		await remarkTsvsheet({ engine })(tree);
+		assert.equal(
+			tree.children[0].value,
+			'<table class="tsvsheet"><tr><td>0.08</td><td>8</td></tr></table>',
+		);
+	});
+
 	it("leaves non-sheet code and other nodes untouched", async () => {
 		const js = code("js", "const x = 1;");
 		const text = {
